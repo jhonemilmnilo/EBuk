@@ -76,8 +76,8 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 - [x] `T-010` [P0, M] Build Book Details screen with metadata, cover image, and dynamic description handling.
 
 ### Phase 4: Download Manager & Library Feature
-- [ ] `T-011` [P0, M] Build DownloadManager service with progress reporting, cancellation, and retry capabilities.
-- [ ] `T-012` [P0, M] Build Library screen displaying offline books, progress indicators, and delete options.
+- [x] `T-011` [P0, M] Build DownloadManager service with progress reporting, cancellation, and retry capabilities.
+- [x] `T-012` [P0, M] Build Library screen displaying offline books, progress indicators, and delete options.
 
 ### Phase 5: Production Reader Implementation
 - [ ] `T-013` [P0, L] Implement full-screen Reader route with TOC navigation, instant CFI resume on relaunch, and Reader theme switcher (Light, Sepia, Dark).

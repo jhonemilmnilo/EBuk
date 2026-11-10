@@ -28,6 +28,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
+  // Curated popular title and author suggestions
+  static const List<String> _popularSuggestions = [
+    'Atomic Habits',
+    'Pride and Prejudice',
+    'Frankenstein',
+    'The Great Gatsby',
+    '1984',
+    'Sherlock Holmes',
+    'Jane Eyre',
+    'Dracula',
+    'Moby Dick',
+    'Alice in Wonderland',
+    'The Picture of Dorian Gray',
+    'War and Peace',
+    'Crime and Punishment',
+    'The Metamorphosis',
+    'A Tale of Two Cities',
+    'Little Women',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +78,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
+  List<String> _getFilteredSuggestions(String query) {
+    if (query.trim().isEmpty) return const [];
+    final lower = query.trim().toLowerCase();
+    return _popularSuggestions
+        .where((s) => s.toLowerCase().contains(lower) && s.toLowerCase() != lower)
+        .take(5)
+        .toList();
+  }
+
+  void _handleBack() {
+    ref.read(searchControllerProvider.notifier).reset();
+    Navigator.of(context).pop();
+  }
+
   @override
   void dispose() {
     _textController.dispose();
@@ -72,163 +106,258 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final searchNotifier = ref.read(searchControllerProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search Input on Left, Back Button on Right
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.neutralLight.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _focusNode.hasFocus
-                              ? (isDark ? AppColors.primaryLight : AppColors.primary)
-                              : (isDark
-                                  ? AppColors.darkNeutral.withValues(alpha: 0.8)
-                                  : AppColors.neutral.withValues(alpha: 0.4)),
-                          width: 1.2,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: _textController,
-                              focusNode: _focusNode,
-                              style: AppTypography.body.copyWith(
-                                fontSize: 15,
-                                color: isDark ? AppColors.darkText : AppColors.textDark,
-                              ),
-                              autofocus: widget.initialTopic == null &&
-                                  (widget.initialQuery == null ||
-                                      widget.initialQuery!.isEmpty),
-                              decoration: InputDecoration(
-                                hintText: AppStrings.searchPlaceholder,
-                                hintStyle: AppTypography.body.copyWith(
-                                  color: isDark
-                                      ? AppColors.darkTextMuted.withValues(alpha: 0.8)
-                                      : AppColors.textMuted.withValues(alpha: 0.8),
-                                  fontSize: 14,
-                                ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              onChanged: (val) {
-                                setState(() {});
-                                searchNotifier.onQueryChanged(val);
-                              },
-                              onSubmitted: (val) {
-                                if (val.trim().isNotEmpty) {
-                                  ref
-                                      .read(homeControllerProvider.notifier)
-                                      .addRecentSearch(val.trim());
-                                  searchNotifier.search(query: val.trim());
-                                }
-                              },
-                            ),
-                          ),
-                          if (_textController.text.isNotEmpty)
-                            GestureDetector(
-                              onTap: () {
-                                _textController.clear();
-                                setState(() {});
-                                searchNotifier.onQueryChanged('');
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Icon(
-                                  Icons.close,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Back button placed on the right side
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.arrow_back_ios_new,
-                      color: isDark ? AppColors.darkText : AppColors.primary,
-                      size: 20,
-                    ),
-                    padding: const EdgeInsets.all(10),
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+    final suggestions = _getFilteredSuggestions(_textController.text);
 
-              // Active Topic Badge if applicable
-              if (searchState.topic != null && searchState.topic!.isNotEmpty) ...[
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          ref.read(searchControllerProvider.notifier).reset();
+        }
+      },
+      child: Scaffold(
+        backgroundColor:
+            isDark ? AppColors.darkBackground : AppColors.background,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Search Bar + Right-side Back Button
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.primaryLight.withValues(alpha: 0.2)
-                            : AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? AppColors.primaryLight.withValues(alpha: 0.4)
-                              : AppColors.primary.withValues(alpha: 0.25),
+                              ? AppColors.darkSurface
+                              : AppColors.neutralLight.withValues(alpha: 0.45),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _focusNode.hasFocus
+                                ? (isDark
+                                    ? AppColors.primaryLight
+                                    : AppColors.primary)
+                                : (isDark
+                                    ? AppColors.darkNeutral.withValues(alpha: 0.8)
+                                    : AppColors.neutral.withValues(alpha: 0.4)),
+                            width: 1.2,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search,
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.textMuted,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _textController,
+                                focusNode: _focusNode,
+                                style: AppTypography.body.copyWith(
+                                  fontSize: 15,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.textDark,
+                                ),
+                                autofocus: widget.initialTopic == null &&
+                                    (widget.initialQuery == null ||
+                                        widget.initialQuery!.isEmpty),
+                                decoration: InputDecoration(
+                                  hintText: AppStrings.searchPlaceholder,
+                                  hintStyle: AppTypography.body.copyWith(
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                            .withValues(alpha: 0.8)
+                                        : AppColors.textMuted
+                                            .withValues(alpha: 0.8),
+                                    fontSize: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                onChanged: (val) {
+                                  setState(() {});
+                                  searchNotifier.onQueryChanged(val);
+                                },
+                                onSubmitted: (val) {
+                                  if (val.trim().isNotEmpty) {
+                                    ref
+                                        .read(homeControllerProvider.notifier)
+                                        .addRecentSearch(val.trim());
+                                    searchNotifier.search(query: val.trim());
+                                  }
+                                },
+                              ),
+                            ),
+                            if (_textController.text.isNotEmpty)
+                              GestureDetector(
+                                onTap: () {
+                                  _textController.clear();
+                                  setState(() {});
+                                  searchNotifier.onQueryChanged('');
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : AppColors.textMuted,
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      child: Text(
-                        'Topic: ${searchState.topic![0].toUpperCase()}${searchState.topic!.substring(1)}',
-                        style: AppTypography.caption.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.darkText : AppColors.primary,
-                        ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Back button on the right that cleans up state
+                    IconButton(
+                      onPressed: _handleBack,
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: isDark ? AppColors.darkText : AppColors.primary,
+                        size: 20,
                       ),
+                      padding: const EdgeInsets.all(10),
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-              ],
+                const SizedBox(height: 10),
 
-              // Content Body
-              Expanded(
-                child: _buildBody(searchState, searchNotifier, isDark),
-              ),
-            ],
+                // Live Suggestions Row while user is typing
+                if (suggestions.isNotEmpty &&
+                    searchState.status != SearchStatus.loading) ...[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: suggestions.map((s) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8, bottom: 4),
+                          child: GestureDetector(
+                            onTap: () {
+                              _textController.text = s;
+                              _textController.selection =
+                                  TextSelection.fromPosition(
+                                TextPosition(offset: s.length),
+                              );
+                              setState(() {});
+                              ref
+                                  .read(homeControllerProvider.notifier)
+                                  .addRecentSearch(s);
+                              searchNotifier.search(query: s);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkSurface
+                                    : AppColors.neutralLight
+                                        .withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.darkNeutral
+                                      : AppColors.neutral
+                                          .withValues(alpha: 0.4),
+                                  width: 0.9,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.north_west,
+                                    size: 13,
+                                    color: isDark
+                                        ? AppColors.primaryLight
+                                        : AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    s,
+                                    style: AppTypography.caption.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppColors.darkText
+                                          : AppColors.textDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+
+                // Active Topic Badge if applicable
+                if (searchState.topic != null &&
+                    searchState.topic!.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.primaryLight.withValues(alpha: 0.2)
+                              : AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.primaryLight.withValues(alpha: 0.4)
+                                : AppColors.primary.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Text(
+                          'Topic: ${searchState.topic![0].toUpperCase()}${searchState.topic!.substring(1)}',
+                          style: AppTypography.caption.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color:
+                                isDark ? AppColors.darkText : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                // Content Body
+                Expanded(
+                  child: _buildBody(searchState, searchNotifier, isDark),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBody(SearchState state, BookSearchNotifier notifier, bool isDark) {
+  Widget _buildBody(
+      SearchState state, BookSearchNotifier notifier, bool isDark) {
     switch (state.status) {
       case SearchStatus.initial:
         return Center(
@@ -256,7 +385,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   AppStrings.searchInitialPrompt,
                   style: AppTypography.caption.copyWith(
                     fontSize: 13,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.textMuted,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -308,7 +438,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: Text(
                   AppStrings.noResultsSubtitle,
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.textMuted,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -340,7 +471,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: Text(
                   state.errorMessage ?? AppStrings.networkError,
                   style: AppTypography.caption.copyWith(
-                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.textMuted,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -360,7 +492,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   child: Text(
                     AppStrings.retry,
                     style: AppTypography.button.copyWith(
-                      color: isDark ? AppColors.darkBackground : AppColors.textOnPrimary,
+                      color: isDark
+                          ? AppColors.darkBackground
+                          : AppColors.textOnPrimary,
                     ),
                   ),
                 ),

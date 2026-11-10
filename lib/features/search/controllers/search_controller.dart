@@ -8,10 +8,9 @@ class BookSearchNotifier extends StateNotifier<SearchState> {
   final GutendexApiClient apiClient;
   Timer? _debounceTimer;
 
-  BookSearchNotifier({required this.apiClient})
-      : super(const SearchState());
+  BookSearchNotifier({required this.apiClient}) : super(const SearchState());
 
-  /// Sets search query and debounces network request (500ms)
+  /// Sets search query and debounces network request (400ms)
   void onQueryChanged(String query) {
     _debounceTimer?.cancel();
 
@@ -27,7 +26,7 @@ class BookSearchNotifier extends StateNotifier<SearchState> {
 
     state = state.copyWith(query: query);
 
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
       search(query: query, topic: state.topic);
     });
   }
@@ -96,6 +95,12 @@ class BookSearchNotifier extends StateNotifier<SearchState> {
     }
   }
 
+  /// Reset search state completely when leaving the screen
+  void reset() {
+    _debounceTimer?.cancel();
+    state = const SearchState();
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
@@ -104,7 +109,7 @@ class BookSearchNotifier extends StateNotifier<SearchState> {
 }
 
 final searchControllerProvider =
-    StateNotifierProvider<BookSearchNotifier, SearchState>((ref) {
+    StateNotifierProvider.autoDispose<BookSearchNotifier, SearchState>((ref) {
   final apiClient = ref.watch(gutendexApiClientProvider);
   return BookSearchNotifier(apiClient: apiClient);
 });

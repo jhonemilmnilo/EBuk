@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api/api_providers.dart';
 import '../../../domain/models/book.dart';
+import '../../library/controllers/library_controller.dart';
 import '../state/book_details_state.dart';
 
 class BookDetailsController extends StateNotifier<BookDetailsState> {
@@ -116,6 +117,9 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
         downloadState: DownloadState.downloaded,
         downloadProgress: 1.0,
       );
+
+      // Notify library controller to register this downloaded book
+      ref.read(libraryControllerProvider.notifier).recordDownloadedBook(book);
     } catch (e) {
       if (CancelToken.isCancel(e as dynamic)) {
         state = state.copyWith(

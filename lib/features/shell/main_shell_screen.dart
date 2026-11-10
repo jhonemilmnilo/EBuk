@@ -3,6 +3,7 @@ import '../../core/strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../home/presentation/screens/home_screen.dart';
+import '../library/presentation/screens/library_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -16,7 +17,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   int _selectedIndex = 1;
 
   static const List<Widget> _screens = [
-    _PlaceholderScreen(title: AppStrings.navLibrary),
+    LibraryScreen(),
     HomeScreen(),
     _PlaceholderScreen(title: AppStrings.navSettings),
   ];
