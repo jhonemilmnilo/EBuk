@@ -71,8 +71,8 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 - [ ] `T-007` [P0, M] Configure Drift SQLite database schema (`books`, `reading_progress`, `search_history`) and repository implementations with unit tests.
 
 ### Phase 3: Gutendex Search & Book Details
-- [ ] `T-008` [P0, M] Implement Gutendex API client with Dio (search, pagination, debounce, timeout handling, and caching).
-- [ ] `T-009` [P0, M] Build Search Results screen with loading, empty, and error states.
+- [x] `T-008` [P0, M] Implement Gutendex API client with Dio (search, pagination, debounce, timeout handling, and caching).
+- [x] `T-009` [P0, M] Build Search Results screen with loading, empty, and error states.
 - [ ] `T-010` [P0, M] Build Book Details screen with metadata, cover image, and dynamic description handling.
 
 ### Phase 4: Download Manager & Library Feature

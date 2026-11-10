@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/strings.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
-import '../../controllers/home_controller.dart';
-import '../widgets/category_grid_section.dart';
-import '../widgets/continue_reading_card.dart';
-import '../widgets/home_search_bar.dart';
-import '../widgets/recent_searches_section.dart';
+import 'package:ebuk/core/strings.dart';
+import 'package:ebuk/core/theme/app_colors.dart';
+import 'package:ebuk/core/theme/app_typography.dart';
+import 'package:ebuk/features/home/controllers/home_controller.dart';
+import 'package:ebuk/features/home/presentation/widgets/category_grid_section.dart';
+import 'package:ebuk/features/home/presentation/widgets/continue_reading_card.dart';
+import 'package:ebuk/features/home/presentation/widgets/home_search_bar.dart';
+import 'package:ebuk/features/home/presentation/widgets/recent_searches_section.dart';
+import 'package:ebuk/features/search/presentation/screens/search_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,10 +34,14 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Search Bar
+              // Search Bar (Navigates to Search Screen on Tap)
               HomeSearchBar(
                 onTap: () {
-                  // Navigation will be linked to /search route
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 24),
@@ -46,7 +51,11 @@ class HomeScreen extends ConsumerWidget {
                 RecentSearchesSection(
                   searches: homeState.recentSearches,
                   onSelect: (query) {
-                    // Navigate to search with query
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SearchScreen(initialQuery: query),
+                      ),
+                    );
                   },
                   onRemove: (query) => controller.removeRecentSearch(query),
                   onClearAll: () => controller.clearRecentSearches(),
@@ -54,10 +63,14 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
               ],
 
-              // Browse by Category
+              // Browse by Category (Navigates to Search Screen with preselected topic)
               CategoryGridSection(
                 onCategorySelected: (category) {
-                  // Navigate to search with topic
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => SearchScreen(initialTopic: category),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 24),
@@ -79,4 +92,3 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
-
