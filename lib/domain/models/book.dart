@@ -1,4 +1,4 @@
-/// Domain model representing a book retrieved from Project Gutenberg (Gutendex).
+/// Domain model representing a book retrieved from Project Gutenberg (Gutendex) or Open Library.
 class Book {
   final int id;
   final String title;
@@ -8,6 +8,7 @@ class Book {
   final String? coverUrl;
   final String? epubUrl;
   final String? description;
+  final String? workKey; // e.g. "/works/OL17930368W"
 
   const Book({
     required this.id,
@@ -18,11 +19,36 @@ class Book {
     this.coverUrl,
     this.epubUrl,
     this.description,
+    this.workKey,
   });
 
   String get authorsDisplay {
     if (authors.isEmpty) return 'Unknown Author';
     return authors.join(', ');
+  }
+
+  Book copyWith({
+    int? id,
+    String? title,
+    List<String>? authors,
+    List<String>? subjects,
+    List<String>? languages,
+    String? coverUrl,
+    String? epubUrl,
+    String? description,
+    String? workKey,
+  }) {
+    return Book(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      authors: authors ?? this.authors,
+      subjects: subjects ?? this.subjects,
+      languages: languages ?? this.languages,
+      coverUrl: coverUrl ?? this.coverUrl,
+      epubUrl: epubUrl ?? this.epubUrl,
+      description: description ?? this.description,
+      workKey: workKey ?? this.workKey,
+    );
   }
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -31,7 +57,6 @@ class Book {
     if (json['authors'] is List) {
       for (final a in json['authors']) {
         if (a is Map && a['name'] != null) {
-          // Normalize format "LastName, FirstName" to "FirstName LastName"
           final rawName = a['name'].toString();
           if (rawName.contains(',')) {
             final parts = rawName.split(',');
@@ -64,11 +89,7 @@ class Book {
     String? epub;
     if (json['formats'] is Map) {
       final formats = json['formats'] as Map<String, dynamic>;
-
-      // Cover image
       cover = formats['image/jpeg'] as String?;
-
-      // EPUB download link (application/epub+zip is preferred)
       epub = formats['application/epub+zip'] as String? ??
           formats['application/x-mobipocket-ebook'] as String?;
     }
@@ -120,4 +141,3 @@ class BookSearchResult {
     );
   }
 }
-

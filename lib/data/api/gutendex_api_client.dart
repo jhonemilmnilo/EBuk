@@ -19,15 +19,30 @@ class GutendexApiClient {
               ),
             );
 
-  /// Primary search engine:
-  /// Uses Open Library (lightning-fast, 100% reliable, comprehensive) with
-  /// Gutenberg fallback to ensure zero downtime and searchability of any title.
+  /// Fetch full work details/description from Open Library
+  Future<String?> fetchWorkDescription(String workKey) async {
+    try {
+      final cleanKey = workKey.startsWith('/') ? workKey : '/$workKey';
+      final response = await _dio.get('https://openlibrary.org$cleanKey.json');
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        final desc = data['description'];
+        if (desc is String && desc.trim().isNotEmpty) {
+          return desc.trim();
+        } else if (desc is Map && desc['value'] != null) {
+          return desc['value'].toString().trim();
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Primary search engine
   Future<BookSearchResult> searchBooks({
     String? query,
     String? topic,
     String? customUrl,
   }) async {
-    // If a pagination customUrl was passed
     if (customUrl != null && customUrl.isNotEmpty) {
       try {
         final response = await _dio.get(customUrl);
@@ -40,12 +55,11 @@ class GutendexApiClient {
     final searchTerm = query?.trim() ?? '';
     final searchTopic = topic?.trim() ?? '';
 
-    // If both query and topic are empty, return clean empty result
     if (searchTerm.isEmpty && searchTopic.isEmpty) {
       return const BookSearchResult(count: 0, books: []);
     }
 
-    // 1. Query Open Library API (Sub-second response time worldwide)
+    // 1. Query Open Library API
     try {
       final queryBuffer = StringBuffer();
       if (searchTerm.isNotEmpty) {
@@ -74,11 +88,9 @@ class GutendexApiClient {
           return olResult;
         }
       }
-    } catch (_) {
-      // Continue to Gutendex fallback if Open Library network fails
-    }
+    } catch (_) {}
 
-    // 2. Fallback: Gutendex Project Gutenberg API (with trailing slash)
+    // 2. Fallback: Gutendex
     try {
       final queryParams = <String, dynamic>{'languages': 'en'};
       if (searchTerm.isNotEmpty) queryParams['search'] = searchTerm;
@@ -103,7 +115,6 @@ class GutendexApiClient {
       }
     }
 
-    // If nothing found or failed
     return const BookSearchResult(count: 0, books: []);
   }
 
@@ -114,7 +125,6 @@ class GutendexApiClient {
     for (final doc in docs) {
       if (doc is! Map) continue;
 
-      // Extract author names
       final authorList = <String>[];
       if (doc['author_name'] is List) {
         for (final a in doc['author_name']) {
@@ -122,13 +132,11 @@ class GutendexApiClient {
         }
       }
 
-      // Extract cover image
       final coverId = doc['cover_i'];
       final coverUrl = coverId != null
           ? 'https://covers.openlibrary.org/b/id/$coverId-M.jpg'
           : null;
 
-      // Check Gutenberg EPUB link
       String? epubUrl;
       int bookId = 0;
       if (doc['id_project_gutenberg'] is List &&
@@ -137,12 +145,10 @@ class GutendexApiClient {
         bookId = int.tryParse(gutenId) ?? 0;
         epubUrl = 'https://www.gutenberg.org/ebooks/$gutenId.epub.images';
       } else {
-        // Deterministic synthetic ID from key hash
         final keyStr = doc['key']?.toString() ?? doc['title'].toString();
         bookId = keyStr.hashCode.abs();
       }
 
-      // Extract summary / first sentence
       String? summary;
       if (doc['first_sentence'] is Map &&
           doc['first_sentence']['value'] != null) {
@@ -152,7 +158,6 @@ class GutendexApiClient {
         summary = (doc['first_sentence'] as List).first.toString();
       }
 
-      // Extract subjects
       final subjects = <String>[];
       if (doc['subject'] is List) {
         for (final s in (doc['subject'] as List).take(5)) {
@@ -169,6 +174,7 @@ class GutendexApiClient {
           epubUrl: epubUrl,
           description: summary,
           subjects: subjects,
+          workKey: doc['key']?.toString(),
         ),
       );
     }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ebuk/core/strings.dart';
 import 'package:ebuk/core/theme/app_colors.dart';
 import 'package:ebuk/core/theme/app_typography.dart';
+import 'package:ebuk/features/book_details/presentation/screens/book_details_screen.dart';
 import 'package:ebuk/features/home/controllers/home_controller.dart';
 import 'package:ebuk/features/search/controllers/search_controller.dart';
 import 'package:ebuk/features/search/presentation/widgets/book_search_card.dart';
@@ -389,7 +390,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             return BookSearchCard(
               book: book,
               onTap: () {
-                // Book details navigation will be attached next
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailsScreen(book: book),
+                  ),
+                );
               },
             );
           },

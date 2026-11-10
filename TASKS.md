@@ -73,7 +73,7 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 ### Phase 3: Gutendex Search & Book Details
 - [x] `T-008` [P0, M] Implement Gutendex API client with Dio (search, pagination, debounce, timeout handling, and caching).
 - [x] `T-009` [P0, M] Build Search Results screen with loading, empty, and error states.
-- [ ] `T-010` [P0, M] Build Book Details screen with metadata, cover image, and dynamic description handling.
+- [x] `T-010` [P0, M] Build Book Details screen with metadata, cover image, and dynamic description handling.
 
 ### Phase 4: Download Manager & Library Feature
 - [ ] `T-011` [P0, M] Build DownloadManager service with progress reporting, cancellation, and retry capabilities.
