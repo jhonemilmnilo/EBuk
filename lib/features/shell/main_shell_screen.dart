@@ -22,33 +22,74 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
-        height: 60,
+        height: 72,
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: isDark ? AppColors.darkSurface : AppColors.background,
+          // Curved edges strictly on the TOP side
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
           border: Border(
             top: BorderSide(
-              color: AppColors.neutral.withValues(alpha: 0.3),
-              width: 1,
+              color: isDark
+                  ? AppColors.darkNeutral.withValues(alpha: 0.8)
+                  : AppColors.neutral.withValues(alpha: 0.45),
+              width: 1.5,
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, -3),
+            ),
+          ],
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(0, AppStrings.navHome),
-            _buildNavItem(1, AppStrings.navLibrary),
-            _buildNavItem(2, AppStrings.navSettings),
+            _buildModernNavItem(
+              index: 0,
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home,
+              label: AppStrings.navHome,
+              isDark: isDark,
+            ),
+            _buildModernNavItem(
+              index: 1,
+              icon: Icons.local_library_outlined,
+              activeIcon: Icons.local_library,
+              label: AppStrings.navLibrary,
+              isDark: isDark,
+            ),
+            _buildModernNavItem(
+              index: 2,
+              icon: Icons.settings_outlined,
+              activeIcon: Icons.settings,
+              label: AppStrings.navSettings,
+              isDark: isDark,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, String label) {
+  Widget _buildModernNavItem({
+    required int index,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required bool isDark,
+  }) {
     final isSelected = _selectedIndex == index;
 
     return GestureDetector(
@@ -58,26 +99,44 @@ class _MainShellScreenState extends State<MainShellScreen> {
           _selectedIndex = index;
         });
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: AppTypography.sectionHeader.copyWith(
-              color: isSelected ? AppColors.primary : AppColors.textMuted,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark
+                  ? AppColors.primaryLight.withValues(alpha: 0.25)
+                  : AppColors.primary.withValues(alpha: 0.12))
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: isSelected
+                  ? (isDark ? AppColors.darkText : AppColors.primary)
+                  : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
+              size: 24,
             ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            height: 2,
-            width: 24,
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-        ],
+            // Text is strictly positioned BELOW the icon
+            if (isSelected) ...[
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkText : AppColors.primary,
+                  fontSize: 11.5,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -90,8 +149,10 @@ class _PlaceholderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -101,13 +162,17 @@ class _PlaceholderScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 title,
-                style: AppTypography.display,
+                style: AppTypography.display.copyWith(
+                  color: isDark ? AppColors.darkText : AppColors.textDark,
+                ),
               ),
               const Spacer(),
               Center(
                 child: Text(
                   title,
-                  style: AppTypography.title.copyWith(color: AppColors.textMuted),
+                  style: AppTypography.title.copyWith(
+                    color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                  ),
                 ),
               ),
               const Spacer(),
@@ -118,4 +183,3 @@ class _PlaceholderScreen extends StatelessWidget {
     );
   }
 }
-

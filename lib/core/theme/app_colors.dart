@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// Design tokens for EBuk's vintage aesthetic palette.
-/// Sourced strictly from the approved UI spec.
 abstract class AppColors {
   // Primary / Accent (Buttons, active states, progress, key highlights)
   static const Color primary = Color(0xFF590907); // Vintage Maroon
+  static const Color primaryLight = Color(0xFF8B2B28);
 
-  // Background / Canvas (Warm paper tone)
+  // Background / Canvas (Warm paper tone for Light Mode)
   static const Color background = Color(0xFFE8D2B5); // Beige
   static const Color surface = Color(0xFFE8D2B5);
 
@@ -14,10 +14,18 @@ abstract class AppColors {
   static const Color neutral = Color(0xFFA5A79B); // Muted Olive Gray
   static const Color neutralLight = Color(0xFFD3D5CA); // Soft tint for containers
 
-  // Typography Colors
+  // Typography Colors for Light Mode
   static const Color textDark = Color(0xFF2C0403); // Deep contrast maroon/black on beige
   static const Color textMuted = Color(0xFF6B4E4D); // Secondary text
   static const Color textOnPrimary = Color(0xFFE8D2B5); // Beige text on maroon buttons
+
+  // Dark Mode Palette (Night Mode)
+  static const Color darkBackground = Color(0xFF190B0B); // Very deep chocolate maroon
+  static const Color darkSurface = Color(0xFF281414);
+  static const Color darkNeutral = Color(0xFF4A3434);
+  static const Color darkNeutralLight = Color(0xFF382020);
+  static const Color darkText = Color(0xFFE8D2B5);
+  static const Color darkTextMuted = Color(0xFFB89E82);
 
   // Reader Themes
   static const Color readerLightBg = Color(0xFFE8D2B5);
@@ -29,4 +37,3 @@ abstract class AppColors {
   static const Color readerDarkBg = Color(0xFF1E0E0E);
   static const Color readerDarkText = Color(0xFFE8D2B5);
 }
-
