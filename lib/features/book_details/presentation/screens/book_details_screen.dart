@@ -4,6 +4,7 @@ import '../../../../core/strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../domain/models/book.dart';
+import 'package:ebuk/features/reader/presentation/screens/reader_screen.dart';
 import '../../controllers/book_details_controller.dart';
 import '../widgets/book_action_buttons.dart';
 import '../widgets/book_hero_section.dart';
@@ -88,10 +89,9 @@ class BookDetailsScreen extends ConsumerWidget {
                       onDownload: () => controller.downloadBook(),
                       onCancelDownload: () => controller.cancelDownload(),
                       onReadNow: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Opening book in Reader...'),
-                            duration: Duration(seconds: 1),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ReaderScreen(book: activeBook),
                           ),
                         );
                       },

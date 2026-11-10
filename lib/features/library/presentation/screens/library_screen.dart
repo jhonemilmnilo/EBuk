@@ -5,7 +5,9 @@ import 'package:ebuk/core/theme/app_colors.dart';
 import 'package:ebuk/core/theme/app_typography.dart';
 import 'package:ebuk/domain/models/book.dart';
 import 'package:ebuk/features/book_details/presentation/screens/book_details_screen.dart';
+import 'package:ebuk/features/reader/presentation/screens/reader_screen.dart';
 import 'package:ebuk/features/library/controllers/library_controller.dart';
+import 'package:ebuk/features/library/state/library_state.dart';
 import 'package:ebuk/features/library/presentation/widgets/library_book_card.dart';
 import 'package:ebuk/features/library/presentation/widgets/library_empty_state.dart';
 import 'package:ebuk/features/library/presentation/widgets/library_tab_bar.dart';
@@ -103,12 +105,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                             book: book,
                             progress: progress,
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      BookDetailsScreen(book: book),
-                                ),
-                              );
+                              if (libraryState.activeTab == LibraryTab.downloaded) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => ReaderScreen(book: book),
+                                  ),
+                                ).then((_) => controller.loadLibrary());
+                              } else {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => BookDetailsScreen(book: book),
+                                  ),
+                                ).then((_) => controller.loadLibrary());
+                              }
                             },
                             onRemove: () =>
                                 _showOptionsSheet(context, book, controller),

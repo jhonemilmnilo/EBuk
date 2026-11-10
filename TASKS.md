@@ -80,10 +80,10 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 - [x] `T-012` [P0, M] Build Library screen displaying offline books, progress indicators, and delete options.
 
 ### Phase 5: Production Reader Implementation
-- [ ] `T-013` [P0, L] Implement full-screen Reader route with TOC navigation, instant CFI resume on relaunch, and Reader theme switcher (Light, Sepia, Dark).
+- [x] `T-013` [P0, L] Implement full-screen Reader route with TOC navigation, instant CFI resume on relaunch, and Reader theme switcher (Light, Sepia, Dark) adapting to app light/dark mode.
 
 ### Phase 6: Home Screen & Settings
-- [ ] `T-014` [P1, M] Build Home screen featuring recent searches, category shortcuts, and "Continue Reading" card (zero network calls on launch).
+- [x] `T-014` [P1, M] Build Home screen featuring recent searches, category shortcuts, and "Continue Reading" card (zero network calls on launch).
 - [ ] `T-015` [P1, M] Build Settings screen with app theme toggle, storage usage calculation, and Project Gutenberg attribution.
 
 ### Phase 7: Polish, Profiling & Release Build

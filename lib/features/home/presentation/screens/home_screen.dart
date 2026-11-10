@@ -4,6 +4,8 @@ import '../../../../core/strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../domain/models/book.dart';
+import '../../../reader/presentation/screens/reader_screen.dart';
 import '../../controllers/home_controller.dart';
 import 'package:ebuk/features/search/presentation/screens/search_screen.dart';
 import '../widgets/category_grid_section.dart';
@@ -101,7 +103,18 @@ class HomeScreen extends ConsumerWidget {
                 ContinueReadingCard(
                   book: homeState.continueReadingBook!,
                   onResume: () {
-                    // Navigate to reader
+                    final cBook = homeState.continueReadingBook!;
+                    final book = Book(
+                      id: cBook.id,
+                      title: cBook.title,
+                      authors: [cBook.author],
+                      coverUrl: cBook.coverUrl,
+                    );
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ReaderScreen(book: book),
+                      ),
+                    ).then((_) => controller.loadHomeData());
                   },
                 ),
                 const SizedBox(height: 20),

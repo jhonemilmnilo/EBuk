@@ -34,6 +34,10 @@ dependencies:
   # Efficient image caching with memory & disk bounds
   cached_network_image: ^3.4.1
 
+  # EPUB document parsing and rendering
+  epub_view: ^3.2.0
+  flutter_html: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,6 +49,9 @@ dev_dependencies:
 
   # Unit & mock testing
   mocktail: ^1.0.4
+
+dependency_overrides:
+  html: 0.15.4
 
 flutter:
   uses-material-design: true
