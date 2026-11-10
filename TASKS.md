@@ -29,18 +29,19 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 
 ## 2. Current focus
 
-- **Task:** T-001 Configure dependencies and folder structure
-- **Goal (1 line):** Setup pinned dependencies in pubspec.yaml and create the feature-first directory layout.
+- **Task:** None
+- **Goal (1 line):** Home page modular structure complete and verified.
 - **Started:** 2026-11-10
 - **Branch:** main
 - **Steps:**
-  - [ ] Add justified, pinned dependencies to pubspec.yaml
-  - [ ] Run flutter pub get
-  - [ ] Create folder structure under lib/ (core, data, domain, features)
-  - [ ] Verify flutter analyze
-- **Files touched so far:** pubspec.yaml, TASKS.md
-- **How to test:** flutter analyze
-- **Notes / decisions made:** Phase 0 kickoff.
+  - [x] Configure design tokens and typography
+  - [x] Implement isolated Home presentation widgets (no icons)
+  - [x] Setup Riverpod HomeController and immutable HomeState
+  - [x] Implement MainShellScreen with text-only navigation
+  - [x] Verify flutter analyze (0 warnings) and flutter test (passed)
+- **Files touched so far:** lib/core/theme/*, lib/features/home/*, lib/features/shell/*, test/widget_test.dart
+- **How to test:** flutter test
+- **Notes / decisions made:** Clean separation of concerns strictly applied. Zero icons used.
 
 ---
 
@@ -57,10 +58,10 @@ Follow strictly: plan first, work on one task at a time, verify with `flutter an
 ## 4. Tasks (by Phase)
 
 ### Phase 0: Project Setup, Theme Tokens, Strings & Navigation Shell
-- [~] `T-001` [P0, M] Configure dependencies in `pubspec.yaml` with pinned versions & justifications, create folder structure (`core/`, `data/`, `domain/`, `features/`).
-- [ ] `T-002` [P0, S] Implement `lib/core/strings.dart` as the single source of truth for all English UI text.
-- [ ] `T-003` [P0, M] Implement `lib/core/theme/` design tokens (#590907 maroon, #E8D2B5 beige, #A5A79B neutral) with Material 3 theme data (Light, Dark, and Reader Sepia/Dark palettes).
-- [ ] `T-004` [P0, M] Setup `go_router` shell navigation with bottom navigation bar (Home, Library, Settings) and initial placeholder screens. Verify with `flutter analyze`.
+- [x] `T-001` [P0, M] Configure dependencies in `pubspec.yaml` with pinned versions & justifications, create folder structure (`core/`, `data/`, `domain/`, `features/`).
+- [x] `T-002` [P0, S] Implement `lib/core/strings.dart` as the single source of truth for all English UI text.
+- [x] `T-003` [P0, M] Implement `lib/core/theme/` design tokens (#590907 maroon, #E8D2B5 beige, #A5A79B neutral) with Material 3 theme data (Light, Dark, and Reader Sepia/Dark palettes).
+- [x] `T-004` [P0, M] Setup `go_router` shell navigation with bottom navigation bar (Home, Library, Settings) and initial placeholder screens. Verify with `flutter analyze`.
 
 ### Phase 1: Reader Spike & Prototype
 - [ ] `T-005` [P0, M] Test candidate EPUB packages (`epub_view` vs `flutter_epub_viewer`) with sample EPUBs. Verify CFI position saving/restoration and font scaling. Document decision in `DECISIONS.md`.
