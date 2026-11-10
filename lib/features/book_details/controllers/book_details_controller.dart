@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +40,6 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
     );
   }
 
-  /// Automatically fetches full description/summary if not already loaded
   Future<void> _fetchExtendedSummary() async {
     if (book.description == null || book.description!.trim().isEmpty) {
       if (book.workKey != null && book.workKey!.isNotEmpty) {
@@ -47,7 +47,6 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
         final desc = await apiClient.fetchWorkDescription(book.workKey!);
         if (desc != null && desc.trim().isNotEmpty) {
           book = book.copyWith(description: desc);
-          // Trigger UI rebuild with updated description
           state = state.copyWith();
         }
       }
@@ -60,34 +59,66 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
     );
   }
 
+  /// Persistent Favorite Toggle with Metadata saving
   Future<void> toggleFavorite() async {
     final prefs = await SharedPreferences.getInstance();
-    final favorites = prefs.getStringList('favorite_book_ids') ?? [];
-    final bookIdStr = book.id.toString();
+    final favIds = prefs.getStringList('favorite_book_ids') ?? [];
+    final favBooksJson = prefs.getStringList('saved_favorite_books') ?? [];
 
-    final updated = List<String>.from(favorites);
-    if (updated.contains(bookIdStr)) {
-      updated.remove(bookIdStr);
+    final bookIdStr = book.id.toString();
+    final isCurrentlyFav = favIds.contains(bookIdStr);
+
+    final updatedIds = List<String>.from(favIds);
+    final updatedBooks = List<String>.from(favBooksJson);
+
+    if (isCurrentlyFav) {
+      updatedIds.remove(bookIdStr);
+      updatedBooks.removeWhere((item) {
+        try {
+          final map = jsonDecode(item);
+          return map['id'] == book.id;
+        } catch (_) {
+          return false;
+        }
+      });
     } else {
-      updated.add(bookIdStr);
+      updatedIds.add(bookIdStr);
+      final bookJson = jsonEncode({
+        'id': book.id,
+        'title': book.title,
+        'authors': book.authors.map((a) => {'name': a}).toList(),
+        'formats': {
+          'image/jpeg': book.coverUrl,
+          'application/epub+zip': book.epubUrl,
+        },
+        'subjects': book.subjects,
+        'summaries': book.description != null ? [book.description] : [],
+      });
+      updatedBooks.insert(0, bookJson);
     }
 
-    await prefs.setStringList('favorite_book_ids', updated);
-    state = state.copyWith(isFavorite: !state.isFavorite);
+    await prefs.setStringList('favorite_book_ids', updatedIds);
+    await prefs.setStringList('saved_favorite_books', updatedBooks);
+
+    state = state.copyWith(isFavorite: !isCurrentlyFav);
+
+    // Sync Library state
+    ref.read(libraryControllerProvider.notifier).loadLibrary();
   }
 
+  /// Real-time Download Execution
   Future<void> downloadBook() async {
     if (book.epubUrl == null || book.epubUrl!.isEmpty) {
       state = state.copyWith(
         downloadState: DownloadState.error,
-        errorMessage: 'No EPUB download format available for this title.',
+        errorMessage: 'No EPUB download link available for this book.',
       );
       return;
     }
 
     state = state.copyWith(
       downloadState: DownloadState.downloading,
-      downloadProgress: 0.0,
+      downloadProgress: 0.05,
       errorMessage: null,
     );
 
@@ -106,9 +137,18 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
         book.epubUrl!,
         savePath,
         cancelToken: _cancelToken,
+        options: Options(
+          followRedirects: true,
+          headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 EBuk/1.0',
+          },
+        ),
         onReceiveProgress: (received, total) {
           if (total > 0) {
-            state = state.copyWith(downloadProgress: received / total);
+            state = state.copyWith(
+              downloadProgress: (received / total).clamp(0.05, 0.99),
+            );
           }
         },
       );
@@ -118,8 +158,8 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
         downloadProgress: 1.0,
       );
 
-      // Notify library controller to register this downloaded book
-      ref.read(libraryControllerProvider.notifier).recordDownloadedBook(book);
+      // Save to library
+      await ref.read(libraryControllerProvider.notifier).recordDownloadedBook(book);
     } catch (e) {
       if (CancelToken.isCancel(e as dynamic)) {
         state = state.copyWith(
@@ -129,7 +169,7 @@ class BookDetailsController extends StateNotifier<BookDetailsState> {
       } else {
         state = state.copyWith(
           downloadState: DownloadState.error,
-          errorMessage: 'Download failed. Please check your connection.',
+          errorMessage: 'Download was interrupted. Tap retry to download again.',
         );
       }
     }

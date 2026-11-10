@@ -28,9 +28,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  // Curated popular title and author suggestions
   static const List<String> _popularSuggestions = [
-    'Atomic Habits',
     'Pride and Prejudice',
     'Frankenstein',
     'The Great Gatsby',
@@ -237,6 +235,75 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ),
                 const SizedBox(height: 10),
 
+                // Active Topic Badge with an 'x' dismiss button
+                if (searchState.topic != null &&
+                    searchState.topic!.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 6,
+                          top: 4,
+                          bottom: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.primaryLight.withValues(alpha: 0.22)
+                              : AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.primaryLight.withValues(alpha: 0.45)
+                                : AppColors.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Topic: ${searchState.topic![0].toUpperCase()}${searchState.topic!.substring(1)}',
+                              style: AppTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppColors.darkText
+                                    : AppColors.primary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // 'x' dismiss button to remove topic filter
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                searchNotifier.clearTopic();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: (isDark
+                                          ? AppColors.darkText
+                                          : AppColors.primary)
+                                      .withValues(alpha: 0.18),
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 13,
+                                  color: isDark
+                                      ? AppColors.darkText
+                                      : AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
                 // Live Suggestions Row while user is typing
                 if (suggestions.isNotEmpty &&
                     searchState.status != SearchStatus.loading) ...[
@@ -307,41 +374,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                ],
-
-                // Active Topic Badge if applicable
-                if (searchState.topic != null &&
-                    searchState.topic!.isNotEmpty) ...[
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.primaryLight.withValues(alpha: 0.2)
-                              : AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isDark
-                                ? AppColors.primaryLight.withValues(alpha: 0.4)
-                                : AppColors.primary.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: Text(
-                          'Topic: ${searchState.topic![0].toUpperCase()}${searchState.topic!.substring(1)}',
-                          style: AppTypography.caption.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color:
-                                isDark ? AppColors.darkText : AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
                 ],
 
                 // Content Body

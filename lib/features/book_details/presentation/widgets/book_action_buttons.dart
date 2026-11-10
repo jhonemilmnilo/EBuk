@@ -28,41 +28,57 @@ class BookActionButtons extends StatelessWidget {
       children: [
         // Primary Action Button (Download / Downloading / Read Now)
         _buildPrimaryButton(context, isDark),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
-        // Secondary Action Button (Add to Favorites)
+        // Secondary Action Button (Add to Favorites with Heart Icon)
         SizedBox(
           width: double.infinity,
           height: 48,
-          child: OutlinedButton.icon(
+          child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: isDark
-                    ? AppColors.darkNeutral.withValues(alpha: 0.8)
-                    : AppColors.neutral,
+                color: state.isFavorite
+                    ? (isDark ? Colors.redAccent.withValues(alpha: 0.8) : Colors.red.shade400)
+                    : (isDark
+                        ? AppColors.darkNeutral.withValues(alpha: 0.8)
+                        : AppColors.neutral.withValues(alpha: 0.5)),
                 width: 1.2,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              backgroundColor: isDark
-                  ? AppColors.darkSurface
-                  : AppColors.neutralLight.withValues(alpha: 0.25),
+              backgroundColor: state.isFavorite
+                  ? (isDark
+                      ? Colors.red.shade900.withValues(alpha: 0.25)
+                      : Colors.red.shade50.withValues(alpha: 0.6))
+                  : (isDark
+                      ? AppColors.darkSurface
+                      : AppColors.neutralLight.withValues(alpha: 0.25)),
             ),
             onPressed: onToggleFavorite,
-            icon: Icon(
-              state.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: state.isFavorite
-                  ? (isDark ? Colors.redAccent : AppColors.primary)
-                  : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
-              size: 20,
-            ),
-            label: Text(
-              state.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-              style: AppTypography.button.copyWith(
-                color: isDark ? AppColors.darkText : AppColors.textDark,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  state.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: state.isFavorite
+                      ? Colors.redAccent
+                      : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  state.isFavorite
+                      ? 'Remove from Favorites'
+                      : 'Add to Favorites',
+                  style: AppTypography.button.copyWith(
+                    color: state.isFavorite
+                        ? (isDark ? Colors.redAccent : Colors.red.shade700)
+                        : (isDark ? AppColors.darkText : AppColors.textDark),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -88,7 +104,7 @@ class BookActionButtons extends StatelessWidget {
       case DownloadState.error:
         return SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor:
@@ -96,17 +112,33 @@ class BookActionButtons extends StatelessWidget {
               foregroundColor:
                   isDark ? AppColors.darkBackground : AppColors.textOnPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
-              elevation: 0,
+              elevation: 2,
+              shadowColor: (isDark ? AppColors.primaryLight : AppColors.primary)
+                  .withValues(alpha: 0.35),
             ),
             onPressed: onDownload,
-            child: Text(
-              AppStrings.download,
-              style: AppTypography.button.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  state.downloadState == DownloadState.error
+                      ? Icons.refresh
+                      : Icons.download_rounded,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  state.downloadState == DownloadState.error
+                      ? 'Retry Download'
+                      : AppStrings.download,
+                  style: AppTypography.button.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -115,11 +147,11 @@ class BookActionButtons extends StatelessWidget {
         final percent = (state.downloadProgress * 100).toInt();
         return Container(
           width: double.infinity,
-          height: 50,
+          height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.neutralLight,
-            borderRadius: BorderRadius.circular(25),
+            color: isDark ? AppColors.darkSurface : AppColors.neutralLight.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(26),
             border: Border.all(
               color: isDark ? AppColors.primaryLight : AppColors.primary,
               width: 1.2,
@@ -167,7 +199,7 @@ class BookActionButtons extends StatelessWidget {
       case DownloadState.downloaded:
         return SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 52,
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor:
@@ -175,9 +207,11 @@ class BookActionButtons extends StatelessWidget {
               foregroundColor:
                   isDark ? AppColors.darkBackground : AppColors.textOnPrimary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(26),
               ),
-              elevation: 0,
+              elevation: 2,
+              shadowColor: (isDark ? AppColors.primaryLight : AppColors.primary)
+                  .withValues(alpha: 0.35),
             ),
             onPressed: onReadNow,
             icon: const Icon(Icons.menu_book, size: 20),
@@ -193,4 +227,3 @@ class BookActionButtons extends StatelessWidget {
     }
   }
 }
-

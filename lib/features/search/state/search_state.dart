@@ -32,10 +32,11 @@ class SearchState {
     String? nextUrl,
     bool? isLoadingMore,
     bool clearNextUrl = false,
+    bool clearTopic = false,
   }) {
     return SearchState(
       query: query ?? this.query,
-      topic: topic ?? this.topic,
+      topic: clearTopic ? null : (topic ?? this.topic),
       books: books ?? this.books,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,

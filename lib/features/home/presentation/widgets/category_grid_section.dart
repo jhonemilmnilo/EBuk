@@ -11,13 +11,24 @@ class CategoryGridSection extends StatelessWidget {
     required this.onCategorySelected,
   });
 
+  // Expanded collection of classic literary genres and topics
   static const List<String> categories = [
     'Fiction',
     'History',
     'Philosophy',
     'Poetry',
-    'Science',
+    'Science Fiction',
+    'Mystery & Detective',
+    'Adventure',
+    'Romance',
+    'Horror & Gothic',
     'Biography',
+    'Drama & Plays',
+    'Fantasy',
+    'Short Stories',
+    'Psychology',
+    'Children\'s Literature',
+    'Mythology & Folklore',
   ];
 
   @override
@@ -27,11 +38,23 @@ class CategoryGridSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppStrings.popularTopics,
-          style: AppTypography.sectionHeader.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.textDark,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              AppStrings.popularTopics,
+              style: AppTypography.sectionHeader.copyWith(
+                color: isDark ? AppColors.darkText : AppColors.textDark,
+              ),
+            ),
+            Text(
+              '${categories.length} Topics',
+              style: AppTypography.caption.copyWith(
+                color: isDark ? AppColors.darkTextMuted : AppColors.textMuted,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         LayoutBuilder(
@@ -48,17 +71,18 @@ class CategoryGridSection extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => onCategorySelected(title),
                     child: Container(
-                      height: 46,
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isDark
-                            ? AppColors.darkNeutralLight.withValues(alpha: 0.5)
+                            ? AppColors.darkSurface
                             : AppColors.neutralLight.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isDark
                               ? AppColors.darkNeutral.withValues(alpha: 0.8)
-                              : AppColors.neutral.withValues(alpha: 0.5),
+                              : AppColors.neutral.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -66,8 +90,12 @@ class CategoryGridSection extends StatelessWidget {
                         title,
                         style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w500,
+                          fontSize: 13.5,
                           color: isDark ? AppColors.darkText : AppColors.textDark,
                         ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),

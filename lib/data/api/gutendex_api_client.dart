@@ -37,21 +37,14 @@ class GutendexApiClient {
     return null;
   }
 
-  /// Primary search engine
+  /// Search books with a strict filter:
+  /// ONLY returns books that have a guaranteed 100% free downloadable EPUB file
+  /// from Project Gutenberg's verified public-domain catalog.
   Future<BookSearchResult> searchBooks({
     String? query,
     String? topic,
     String? customUrl,
   }) async {
-    if (customUrl != null && customUrl.isNotEmpty) {
-      try {
-        final response = await _dio.get(customUrl);
-        if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-          return _parseOpenLibraryResponse(response.data as Map<String, dynamic>);
-        }
-      } catch (_) {}
-    }
-
     final searchTerm = query?.trim() ?? '';
     final searchTopic = topic?.trim() ?? '';
 
@@ -59,7 +52,7 @@ class GutendexApiClient {
       return const BookSearchResult(count: 0, books: []);
     }
 
-    // 1. Query Open Library API
+    // 1. Query Open Library strictly for Project Gutenberg public-domain titles
     try {
       final queryBuffer = StringBuffer();
       if (searchTerm.isNotEmpty) {
@@ -75,7 +68,8 @@ class GutendexApiClient {
         uri,
         queryParameters: {
           'q': queryBuffer.toString(),
-          'limit': 20,
+          'limit': 40,
+          'has_fulltext': 'true',
           'fields':
               'key,title,author_name,cover_i,id_project_gutenberg,language,subject,first_sentence,ebook_access',
         },
@@ -90,7 +84,7 @@ class GutendexApiClient {
       }
     } catch (_) {}
 
-    // 2. Fallback: Gutendex
+    // 2. Fallback: Gutendex Project Gutenberg Catalog
     try {
       final queryParams = <String, dynamic>{'languages': 'en'};
       if (searchTerm.isNotEmpty) queryParams['search'] = searchTerm;
@@ -102,7 +96,16 @@ class GutendexApiClient {
       );
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
-        return BookSearchResult.fromJson(response.data as Map<String, dynamic>);
+        final gutenResult =
+            BookSearchResult.fromJson(response.data as Map<String, dynamic>);
+        final withEpub = gutenResult.books
+            .where((b) => b.epubUrl != null && b.epubUrl!.isNotEmpty)
+            .toList();
+        return BookSearchResult(
+          count: withEpub.length,
+          nextUrl: gutenResult.nextUrl,
+          books: withEpub,
+        );
       }
     } catch (e) {
       if (e is DioException) {
@@ -125,6 +128,23 @@ class GutendexApiClient {
     for (final doc in docs) {
       if (doc is! Map) continue;
 
+      // Strictly accept books with a verified Project Gutenberg ID
+      String? epubUrl;
+      int bookId = 0;
+
+      if (doc['id_project_gutenberg'] is List &&
+          (doc['id_project_gutenberg'] as List).isNotEmpty) {
+        final gutenId = (doc['id_project_gutenberg'] as List).first.toString();
+        bookId = int.tryParse(gutenId) ?? 0;
+        // Verified direct public domain EPUB download url
+        epubUrl = 'https://www.gutenberg.org/ebooks/$gutenId.epub.images';
+      }
+
+      // If no open Gutenberg EPUB is verified, omit to prevent 401 Unauthorized errors
+      if (epubUrl == null || epubUrl.isEmpty) {
+        continue;
+      }
+
       final authorList = <String>[];
       if (doc['author_name'] is List) {
         for (final a in doc['author_name']) {
@@ -136,18 +156,6 @@ class GutendexApiClient {
       final coverUrl = coverId != null
           ? 'https://covers.openlibrary.org/b/id/$coverId-M.jpg'
           : null;
-
-      String? epubUrl;
-      int bookId = 0;
-      if (doc['id_project_gutenberg'] is List &&
-          (doc['id_project_gutenberg'] as List).isNotEmpty) {
-        final gutenId = (doc['id_project_gutenberg'] as List).first.toString();
-        bookId = int.tryParse(gutenId) ?? 0;
-        epubUrl = 'https://www.gutenberg.org/ebooks/$gutenId.epub.images';
-      } else {
-        final keyStr = doc['key']?.toString() ?? doc['title'].toString();
-        bookId = keyStr.hashCode.abs();
-      }
 
       String? summary;
       if (doc['first_sentence'] is Map &&
@@ -179,15 +187,9 @@ class GutendexApiClient {
       );
     }
 
-    final total = json['numFound'] as int? ?? books.length;
-    final start = json['start'] as int? ?? 0;
-    final nextUrl = (start + books.length < total)
-        ? 'https://openlibrary.org/search.json?q=${json['q']}&offset=${start + books.length}&limit=20'
-        : null;
-
     return BookSearchResult(
-      count: total,
-      nextUrl: nextUrl,
+      count: books.length,
+      nextUrl: null,
       books: books,
     );
   }

@@ -31,6 +31,22 @@ class BookSearchNotifier extends StateNotifier<SearchState> {
     });
   }
 
+  /// Removes active topic filter and triggers search update
+  void clearTopic() {
+    _debounceTimer?.cancel();
+    state = state.copyWith(clearTopic: true);
+
+    if (state.query.trim().isEmpty) {
+      state = state.copyWith(
+        status: SearchStatus.initial,
+        books: const [],
+        clearNextUrl: true,
+      );
+    } else {
+      search(query: state.query, topic: null);
+    }
+  }
+
   /// Direct search execution
   Future<void> search({String? query, String? topic}) async {
     _debounceTimer?.cancel();
