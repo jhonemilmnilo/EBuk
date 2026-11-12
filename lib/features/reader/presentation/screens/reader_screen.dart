@@ -17,6 +17,45 @@ import '../widgets/reader_bottom_bar.dart';
 import '../widgets/reader_toc_sheet.dart';
 import '../widgets/reader_top_bar.dart';
 
+class FluidReaderScrollPhysics extends ScrollPhysics {
+  const FluidReaderScrollPhysics({super.parent});
+
+  @override
+  FluidReaderScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return FluidReaderScrollPhysics(parent: buildParent(ancestor));
+  }
+
+  @override
+  double get minFlingVelocity => 35.0;
+
+  @override
+  double get maxFlingVelocity => 12000.0;
+
+  @override
+  double get dragStartDistanceMotionThreshold => 2.0;
+
+  @override
+  double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
+    // Gives a lighter, responsive feel where small thumb drags scroll more
+    return offset * 1.4;
+  }
+
+  @override
+  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+    final tolerance = toleranceFor(position);
+    if (velocity.abs() >= tolerance.velocity || position.outOfRange) {
+      // Amplified velocity + ultra-low friction (0.004 vs 0.015) makes a gentle flick glide far!
+      return ClampingScrollSimulation(
+        position: position.pixels,
+        velocity: velocity * 2.4,
+        friction: 0.004,
+        tolerance: tolerance,
+      );
+    }
+    return null;
+  }
+}
+
 class ReaderScreen extends ConsumerStatefulWidget {
   final Book book;
   final String? localFilePath;
@@ -255,9 +294,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             },
             child: ScrollConfiguration(
               behavior: const ScrollBehavior().copyWith(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: const FluidReaderScrollPhysics(),
               ),
               child: EpubView(
                 controller: _epubController!,
@@ -294,16 +331,51 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                     paragraphIndex,
                     onExternalLinkPressed,
                   ) {
-                    if (paragraphs.isEmpty) {
+                    if (paragraphs.isEmpty || index >= paragraphs.length) {
                       return const SizedBox.shrink();
                     }
 
+                    final element = paragraphs[index].element;
+                    final text = element.text
+                        .replaceAll('\u00A0', '')
+                        .replaceAll('\n', '')
+                        .trim();
+                    final hasImg = element.getElementsByTagName('img').isNotEmpty ||
+                        element.localName == 'img';
+
+                    // Eliminate pure blank paragraphs or spacer lines
+                    if (text.isEmpty && !hasImg) {
+                      return const SizedBox.shrink();
+                    }
+
+                    // Sanitize raw HTML: Gutenberg title pages contain huge inline CSS
+                    // like margin-top: 15em, height: 100%, padding-top: 200px.
+                    String htmlData = element.outerHtml;
+                    htmlData = htmlData.replaceAll(
+                      RegExp(
+                        r'(height|min-height|max-height)\s*:\s*[^;"]+;?',
+                        caseSensitive: false,
+                      ),
+                      '',
+                    );
+                    htmlData = htmlData.replaceAll(
+                      RegExp(
+                        r'(margin|padding)(-top|-bottom)?\s*:\s*\d+(\.\d+)?(em|px|vh|%|rem|ex)[^;"]*;?',
+                        caseSensitive: false,
+                      ),
+                      '',
+                    );
+
                     return Html(
-                      data: paragraphs[index].element.outerHtml,
+                      data: htmlData,
                       onLinkTap: (href, _, unused) {
                         if (href != null) onExternalLinkPressed(href);
                       },
                       style: {
+                        '*': Style(
+                          margin: Margins.zero,
+                          padding: HtmlPaddings.zero,
+                        ),
                         'html': Style(
                           padding: HtmlPaddings.symmetric(
                             horizontal: 18,
